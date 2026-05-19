@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dots &amp; Boxes</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f13">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dots &amp; Boxes">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f0f13;
+      --surface: #18181f;
+      --border:  #28283a;
+      --text:    #e8e8ee;
+      --muted:   #5a5a72;
+      --gold:    #f5c842;
+      --r:       12px;
+      --p1-color: #3b82f6;
+      --p2-color: #ef4444;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 32px);
+      gap: 14px;
+    }
+
+    /* ── Splash ── */
+    #splash {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    #splash.hidden { display: none; }
+
+    .splash-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .splash-title {
+      font-family: 'Bebas Neue', sans-serif;
+      text-align: center;
+      font-size: 2.4rem;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .splash-title em { font-style: normal; color: var(--gold); }
+    .splash-subtitle {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .splash-players {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .splash-player {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+    }
+    #splash-panel-1 { border-color: var(--p1-color); }
+    #splash-panel-2 { border-color: var(--p2-color); }
+
+    .splash-color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .splash-color-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    input[type="color"] {
+      width: 26px; height: 26px;
+      border: none; border-radius: 50%;
+      padding: 0; cursor: pointer; background: none;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border-radius: 50%; border: 2px solid var(--border); }
+
+    .splash-player input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+    }
+    #splash-name-1 { color: var(--p1-color); caret-color: var(--gold); }
+    #splash-name-2 { color: var(--p2-color); caret-color: var(--gold); }
+    #splash-name-2:disabled { opacity: 0.35; }
+
+    .splash-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .splash-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .splash-row label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--surface)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a5a72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+        no-repeat right 8px center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      padding: 7px 26px 7px 10px;
+      outline: none;
+      flex: 1;
+      max-width: 200px;
+    }
+    select:focus { border-color: var(--gold); }
+
+    #splash-start {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.06em;
+      border: none;
+      border-radius: var(--r);
+      background: var(--gold);
+      color: #111;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+    }
+    #splash-start:hover  { filter: brightness(1.08); }
+    #splash-start:active { transform: scale(0.98); }
+
+    .splash-footer {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .splash-footer a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; line-height: 1; }
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 8vw, 3rem);
+      letter-spacing: 0.1em;
+    }
+    header h1 em { font-style: normal; color: var(--gold); }
+    header p {
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Player panels ── */
+    #players {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .player-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 12px 10px;
+      border-radius: var(--r);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .player-panel.active-1 {
+      border-color: var(--p1-color);
+      box-shadow: 0 0 0 1px var(--p1-color), inset 0 0 28px rgba(0,0,0,0.2);
+    }
+    .player-panel.active-2 {
+      border-color: var(--p2-color);
+      box-shadow: 0 0 0 1px var(--p2-color), inset 0 0 28px rgba(0,0,0,0.2);
+    }
+    .panel-name { font-size: 0.92rem; font-weight: 700; }
+    #panel-1 .panel-name { color: var(--p1-color); }
+    #panel-2 .panel-name { color: var(--p2-color); }
+    .panel-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%; object-fit: cover;
+      border: 2px solid transparent;
+    }
+    #panel-1 .panel-avatar { border-color: var(--p1-color); }
+    #panel-2 .panel-avatar { border-color: var(--p2-color); }
+    .score-label {
+      font-size: 0.58rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .score-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.6rem; line-height: 1;
+    }
+    #panel-1 .score-value { color: var(--p1-color); }
+    #panel-2 .score-value { color: var(--p2-color); }
+
+    /* ── Board ── */
+    #board-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    #board {
+      display: block;
+      width: min(460px, calc(100vw - 52px));
+      height: min(460px, calc(100vw - 52px));
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    @keyframes box-pop {
+      from { opacity: 0; transform: scale(0.4); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .box-new {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: box-pop 0.28s cubic-bezier(0.34,1.5,0.64,1);
+    }
+
+    /* ── Controls ── */
+    #controls {
+      display: flex; flex-wrap: wrap;
+      gap: 8px; align-items: center;
+      justify-content: center;
+      width: 100%; max-width: 500px;
+    }
+
+    button {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 18px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    #new-game-btn { background: var(--gold); color: #111; border-color: transparent; }
+    #new-game-btn:hover { filter: brightness(1.08); }
+    #undo {
+      display: none;
+      background: var(--surface); color: var(--gold); border-color: var(--gold);
+    }
+    #undo:hover { background: rgba(245,200,66,0.1); }
+    #stats-btn { background: var(--surface); color: var(--text); }
+    #stats-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Status ── */
+    #status-row {
+      display: flex; align-items: center;
+      gap: 10px; min-height: 20px;
+    }
+    #status {
+      font-size: 0.75rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    /* ── Avatar picker ── */
+    .avatar-preview {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    #splash-panel-1 .avatar-preview { border-color: var(--p1-color); }
+    #splash-panel-2 .avatar-preview { border-color: var(--p2-color); }
+    .avatar-preview:hover { transform: scale(1.08); }
+
+    #avatar-modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    #avatar-modal.open { display: flex; }
+    #avatar-modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      width: 92%; max-width: 380px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    }
+    #avatar-modal-title {
+      text-align: center;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin: 0 0 16px;
+    }
+    #avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+    .avatar-option {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .avatar-option:hover  { transform: scale(1.1); }
+    .avatar-option.chosen { border-color: var(--gold); transform: scale(1.08); }
+    #avatar-modal-close {
+      display: block; width: 100%;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px;
+      font-size: 0.82rem; cursor: pointer;
+    }
+    #avatar-modal-close:hover { color: var(--text); border-color: var(--text); }
+
+    #ai-thinking {
+      display: none; align-items: center;
+      gap: 6px; font-size: 0.72rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--gold);
+    }
+    #ai-thinking.visible { display: flex; }
+    .pulse { display: flex; gap: 3px; }
+    .pulse span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold); animation: blink 1s infinite;
+    }
+    .pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%,80%,100% { transform: scale(0.55); opacity: 0.35; }
+      40%          { transform: scale(1);    opacity: 1; }
+    }
+
+    /* ── Overlays ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      z-index: 110;
+    }
+    .overlay.visible { display: flex; }
+    .overlay-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px; padding: 34px 40px;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.65);
+      max-width: 320px; width: 88%;
+      animation: pop-in 0.3s cubic-bezier(0.34,1.4,0.64,1) both;
+    }
+    @keyframes pop-in {
+      from { transform: scale(0.75) translateY(20px); opacity: 0; }
+      to   { transform: scale(1)    translateY(0);    opacity: 1; }
+    }
+    .overlay-box h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem; letter-spacing: 0.06em;
+      color: var(--gold); margin-bottom: 6px;
+    }
+    .overlay-box p {
+      font-size: 0.88rem; color: var(--muted);
+      margin-bottom: 22px; line-height: 1.5;
+    }
+    .overlay-box button {
+      background: var(--gold); color: #111;
+      border-color: transparent;
+      padding: 10px 22px; font-size: 0.82rem;
+      margin: 4px;
+    }
+    .overlay-box button:hover { filter: brightness(1.08); }
+    .overlay-box .btn-secondary {
+      background: var(--surface); color: var(--text);
+      border-color: var(--border);
+    }
+    .overlay-box .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    #overlay { background: rgba(0,0,0,0.45); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+    #handoff-overlay.p1 .overlay-box h2 { color: var(--p1-color); }
+    #handoff-overlay.p2 .overlay-box h2 { color: var(--p2-color); }
+
+    /* Stats overlay */
+    #stats-overlay .overlay-box {
+      max-width: 420px; max-height: 80vh;
+      overflow-y: auto; text-align: left;
+      padding: 28px 28px 20px;
+    }
+    #stats-overlay h2 { text-align: center; }
+    .stats-close-row { text-align: center; margin-top: 16px; }
+    .stats-player-row {
+      border-top: 1px solid var(--border);
+      padding: 10px 0;
+    }
+    .stats-name   { font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
+    .stats-record { font-size: 0.85rem; color: var(--muted); }
+    .stats-grid   { font-size: 0.75rem; color: var(--muted); margin-top: 3px; opacity: 0.7; }
+    .stats-empty  { text-align: center; color: var(--muted); padding: 20px 0; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Splash -->
+  <div id="splash">
+    <div class="splash-card">
+      <h1 class="splash-title">DOTS <em>&amp;</em> BOXES</h1>
+      <p class="splash-subtitle">Enter player names to begin</p>
+
+      <div class="splash-players">
+        <div class="splash-player" id="splash-panel-1">
+          <div class="splash-color-row">
+            <input type="color" id="splash-color-1" value="#3b82f6">
+            <span class="splash-color-label">Player 1</span>
+          </div>
+          <img class="avatar-preview" id="avatar-preview-1" src="avatars/alien.png" alt="avatar" data-player="1">
+          <input type="text" id="splash-name-1" placeholder="Your name" maxlength="12" autocomplete="off">
+        </div>
+        <div class="splash-player" id="splash-panel-2">
+          <div class="splash-color-row">
+            <input type="color" id="splash-color-2" value="#ef4444">
+            <span class="splash-color-label">Player 2</span>
+          </div>
+          <img class="avatar-preview" id="avatar-preview-2" src="avatars/astronaut.png" alt="avatar" data-player="2">
+          <input type="text" id="splash-name-2" placeholder="Your name" maxlength="12" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="splash-settings">
+        <div class="splash-row">
+          <label for="splash-mode">Mode</label>
+          <select id="splash-mode">
+            <option value="2p">2 Players</option>
+            <option value="ai">vs Computer</option>
+          </select>
+        </div>
+        <div class="splash-row" id="splash-difficulty-row" style="display:none">
+          <label for="splash-difficulty">Difficulty</label>
+          <select id="splash-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
+          </select>
+        </div>
+        <div class="splash-row">
+          <label for="splash-grid">Grid size</label>
+          <select id="splash-grid">
+            <option value="3">3×3</option>
+            <option value="4">4×4</option>
+            <option value="5" selected>5×5</option>
+            <option value="6">6×6</option>
+            <option value="7">7×7</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="splash-start">Let's Play →</button>
+
+      <p class="splash-footer">
+        <a href="#" id="splash-stats-link">View all-time stats</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Avatar picker modal -->
+  <div id="avatar-modal">
+    <div id="avatar-modal-box">
+      <p id="avatar-modal-title">Choose Avatar</p>
+      <div id="avatar-grid"></div>
+      <button id="avatar-modal-close">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Game -->
+  <header>
+    <h1>DOTS <em>&amp;</em> BOXES</h1>
+    <p>Classic strategy game</p>
+  </header>
+
+  <div id="players">
+    <div class="player-panel" id="panel-1">
+      <img class="panel-avatar" id="panel-avatar-1" src="avatars/alien.png" alt="">
+      <div class="panel-name" id="display-name-1">Player 1</div>
+      <div class="score-label">Score</div>
+      <div class="score-value" id="score-1">0</div>
+    </div>
+    <div class="player-panel" id="panel-2">
+      <img class="panel-avatar" id="panel-avatar-2" src="avatars/astronaut.png" alt="">
+      <div class="panel-name" id="display-name-2">Player 2</div>
+      <div class="score-label">Score</div>
+      <div class="score-value" id="score-2">0</div>
+    </div>
+  </div>
+
+  <!-- Hidden inputs used by game.js -->
+  <input type="text"  id="name-1"     style="display:none">
+  <input type="text"  id="name-2"     style="display:none">
+  <input type="color" id="color-1"    style="display:none" value="#3b82f6">
+  <input type="color" id="color-2"    style="display:none" value="#ef4444">
+  <select             id="mode"       style="display:none"><option value="2p">2p</option><option value="ai">ai</option></select>
+  <select             id="difficulty" style="display:none"><option value="easy">easy</option><option value="medium" selected>medium</option><option value="hard">hard</option><option value="expert">expert</option></select>
+
+  <div id="board-wrap">
+    <svg id="board" viewBox="0 0 480 480"
+         role="application" aria-label="Dots and Boxes game board">
+      <g id="layer-boxes"></g>
+      <g id="layer-edges"></g>
+      <g id="layer-dots"></g>
+      <g id="layer-hover"></g>
+    </svg>
+  </div>
+
+  <div id="controls">
+    <button id="new-game-btn">New Game</button>
+    <button id="undo">Undo</button>
+    <button id="stats-btn">Stats</button>
+  </div>
+
+  <div id="status-row">
+    <p id="status" aria-live="polite"></p>
+    <div id="ai-thinking">
+      Thinking
+      <div class="pulse"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- Handoff overlay -->
+  <div class="overlay" id="handoff-overlay">
+    <div class="overlay-box">
+      <h2 id="handoff-name"></h2>
+      <p>Hand the device to the next player, then tap to play.</p>
+      <button id="handoff-ok">I'm Ready</button>
+    </div>
+  </div>
+
+  <!-- Game over overlay -->
+  <div class="overlay" id="overlay">
+    <div class="overlay-box">
+      <h2 id="overlay-title"></h2>
+      <p id="overlay-scores"></p>
+      <button id="overlay-rematch">Rematch</button>
+      <button id="overlay-newgame" class="btn-secondary">New Game</button>
+      <button id="overlay-stats" class="btn-secondary">Stats</button>
+      <button id="overlay-view" class="btn-secondary">View Board</button>
+    </div>
+  </div>
+
+  <!-- Stats overlay -->
+  <div class="overlay" id="stats-overlay">
+    <div class="overlay-box">
+      <h2>All-Time Stats</h2>
+      <div id="stats-content"><p class="stats-empty">Loading…</p></div>
+      <div class="stats-close-row">
+        <button id="stats-close" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="game.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js")
+    }
+  </script>
+</body>
+</html>
