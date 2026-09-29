@@ -5,8 +5,8 @@
 // It only has the permissions your Supabase row-level security policies allow.
 // Never put your service_role key here.
 
-const SUPABASE_URL = "https://xipsmlowphrcyvarhezw.supabase.co"
-const SUPABASE_KEY = "sb_publishable_WlkVwXJWN9hhcdyYzd8CTw_Eag0ZYo5"
+const SUPABASE_URL = "https://ecvowicvgzsdvgtepaqh.supabase.co"
+const SUPABASE_KEY = "sb_publishable_pm5FRtwTnW4s_onU2BPC_w_YDq_E3nr"
 
 let sb = null
 try {

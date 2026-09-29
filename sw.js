@@ -1,4 +1,4 @@
-const CACHE = "dots-and-boxes-v4"
+const CACHE = "dots-and-boxes-v5"
 const FILES = ["./index.html", "./game.js", "./ai-worker.js", "./manifest.json", "./icon-192.png", "./icon-512.png"]
 
 self.addEventListener("install", e => {
